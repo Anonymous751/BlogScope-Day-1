@@ -1,169 +1,133 @@
 import React from "react";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 import Lottie from "lottie-react";
 import aiAnimation from "../../../assets/Ai-Analysis.json";
 
-// ==== Animations ====
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-`;
-
-// ==== Styled Components ====
+// ================= Styled Components =================
 const Container = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 60px;
+  gap: 40px;
+  justify-content: center;
+  align-items: center;
   min-height: 100vh;
   background-color: ${({ theme }) => theme.bg};
-  color: ${({ theme }) => theme.textPrimary};
-  transition: 0.3s ease all;
-  animation: ${fadeIn} 0.8s ease;
 
   @media (max-width: 900px) {
     flex-direction: column;
-    padding: 30px 30px;
+    padding: 30px;
   }
 `;
 
 const FormWrapper = styled.div`
   flex: 1;
   max-width: 480px;
-  padding: 30px 30px;
   background: ${({ theme }) => theme.navbarCards};
+  padding: 30px;
   border-radius: 12px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
-  margin-right: 40px;
-
-  @media (max-width: 900px) {
-    margin-right: 0;
-    margin-bottom: 30px;
-    width: 100%;
-  }
 `;
 
 const FormTitle = styled.h2`
-  font-size: 2rem;
-  margin-bottom: 24px;
   color: ${({ theme }) => theme.accent1};
   text-align: center;
+  margin-bottom: 24px;
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 `;
 
 const Input = styled.input`
   padding: 12px 16px;
-  font-size: 1rem;
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 6px;
-  background-color: ${({ theme }) => theme.bg};
-  color: ${({ theme }) => theme.textPrimary};
-  transition: all 0.3s;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.accent1};
-    outline: none;
-  }
+  border: 1px solid ${({ theme }) => theme.border};
 `;
 
 const Select = styled.select`
   padding: 12px;
-  font-size: 1rem;
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 6px;
-  background-color: ${({ theme }) => theme.bg};
-  color: ${({ theme }) => theme.textPrimary};
+  border: 1px solid ${({ theme }) => theme.border};
 `;
 
 const TextArea = styled.textarea`
-  padding: 12px 16px;
-  font-size: 1rem;
-  border: 1px solid ${({ theme }) => theme.border};
+  padding: 12px;
   border-radius: 6px;
-  background-color: ${({ theme }) => theme.bg};
-  color: ${({ theme }) => theme.textPrimary};
+  border: 1px solid ${({ theme }) => theme.border};
   min-height: 100px;
-  resize: vertical;
 `;
 
 const Button = styled.button`
-  padding: 12px;
-  font-size: 1.1rem;
-  font-weight: bold;
   background: ${({ theme }) => theme.accent1};
-  color: #fff;
+  color: white;
+  padding: 12px;
   border: none;
   border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
-  transition: background 0.3s;
 
-  &:hover {
-    background: ${({ theme }) => theme.accent2};
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
 const ErrorMsg = styled.div`
   font-size: 0.85rem;
   color: red;
-  margin-top: -12px;
-  margin-bottom: -6px;
+  margin-top: -8px;
 `;
 
 const ImageWrapper = styled.div`
   flex: 1;
   display: flex;
-  align-items: center;
   justify-content: center;
 
   .lottie {
     width: 100%;
     max-width: 400px;
-    animation: ${fadeIn} 1s ease-in-out;
-  }
-
-  @media (max-width: 900px) {
-    margin-top: 30px;
   }
 `;
 
-// ==== Validation Schema ====
+const ProfileImagePreview = styled.img`
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.bg};
+`;
+
+// ================ Yup Validation =================
 const validationSchema = Yup.object({
-  fullname: Yup.string()
-    .matches(/^[a-zA-Z ]+$/, "Only letters and spaces are allowed")
-    .min(3, "At least 3 characters")
-    .max(30, "Max 30 characters")
-    .required("Full Name is required"),
-
-  email: Yup.string()
-    .email("Invalid email format")
-    .required("Email is required"),
-
-  password: Yup.string()
-    .min(6, "At least 6 characters")
-    .max(20, "Max 20 characters")
-    .required("Password is required"),
-
+  fullname: Yup.string().required("Full Name is required"),
+  email: Yup.string().email("Invalid email").required("Email is required"),
+  password: Yup.string().min(6).required("Password is required"),
   role: Yup.string().required("Role is required"),
-
-  profilePicture: Yup.string()
-    .url("Invalid URL")
-    .required("Profile picture is required"),
-
-  bio: Yup.string()
-    .min(10, "Minimum 10 characters")
-    .max(200, "Maximum 200 characters")
-    .required("Bio is required"),
+  profilePicture: Yup.string().url("Invalid URL").required("Profile picture required"),
+  bio: Yup.string().min(10).required("Bio is required"),
 });
 
-// ==== Component ====
+// ================ Main Component =================
 export default function Register() {
+  const mutation = useMutation({
+    mutationFn: (newUser) => axios.post("http://localhost:3000/users", newUser),
+    onSuccess: () => {
+      alert("User registered successfully!");
+      formik.resetForm();
+    },
+    onError: (error) => {
+      console.error("Registration failed:", error);
+      alert("Registration failed!");
+    },
+  });
+
   const formik = useFormik({
     initialValues: {
       fullname: "",
@@ -174,21 +138,8 @@ export default function Register() {
       bio: "",
     },
     validationSchema,
-    onSubmit: (values, { resetForm }) => {
-      fetch("http://localhost:3000/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-      })
-        .then((res) => res.json())
-        .then(() => {
-          alert("User Registered Successfully!");
-          resetForm();
-        })
-        .catch((err) => {
-          console.error("Error:", err);
-          alert("Registration failed!");
-        });
+    onSubmit: (values) => {
+      mutation.mutate(values);
     },
   });
 
@@ -247,20 +198,25 @@ export default function Register() {
             <ErrorMsg>{formik.errors.role}</ErrorMsg>
           )}
 
-          <Input
-            name="profilePicture"
-            placeholder="Profile Picture URL"
-            value={formik.values.profilePicture}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Input
+              name="profilePicture"
+              placeholder="Profile Picture URL"
+              value={formik.values.profilePicture}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+            />
+            {formik.values.profilePicture && !formik.errors.profilePicture && (
+              <ProfileImagePreview src={formik.values.profilePicture} alt="Preview" />
+            )}
+          </div>
           {formik.touched.profilePicture && formik.errors.profilePicture && (
             <ErrorMsg>{formik.errors.profilePicture}</ErrorMsg>
           )}
 
           <TextArea
             name="bio"
-            placeholder="Write a short bio..."
+            placeholder="Short Bio"
             value={formik.values.bio}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -269,7 +225,9 @@ export default function Register() {
             <ErrorMsg>{formik.errors.bio}</ErrorMsg>
           )}
 
-          <Button type="submit">Register</Button>
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? "Submitting..." : "Register"}
+          </Button>
         </Form>
       </FormWrapper>
 

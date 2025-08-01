@@ -1,7 +1,10 @@
-import React, { useState } from "react";
-import styled, { keyframes } from "styled-components";
-import { FiUser, FiEye, FiEyeOff } from "react-icons/fi";  
+import { useState } from "react";
+import styled, { keyframes, useTheme } from "styled-components";
+import { FiUser, FiEye, FiEyeOff, FiLock } from "react-icons/fi";
+import { Formik, Form, useField, ErrorMessage } from "formik";
+import { useNavigate } from "react-router-dom";
 import loginGif from "../../../assets/sign-up.png";
+import * as Yup from "yup";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(30px); }
@@ -53,47 +56,20 @@ const Title = styled.h2`
   margin-bottom: 24px;
 `;
 
-const IconWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 24px;
-  font-size: 3rem;
-  color: ${({ theme }) => theme.accent2};
-`;
-
-// Password input container with icon inside
-const PasswordWrapper = styled.div`
-  position: relative;
-  display: flex;
-  align-items: center;
-
-  input {
-    flex: 1;
-    padding-right: 44px; /* space for the icon */
-  }
-
-  svg {
-    position: absolute;
-    right: 14px;
-    cursor: pointer;
-    color: ${({ theme }) => theme.border};
-    transition: color 0.3s;
-
-    &:hover {
-      color: ${({ theme }) => theme.accent1};
-    }
-  }
-`;
-
-const Form = styled.form`
+const StyledForm = styled(Form)`
   display: flex;
   flex-direction: column;
-  gap: 20px;
 `;
 
-const Input = styled.input`
-  padding: 14px 18px;
+const InputWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  margin-bottom: 4px;
+`;
+
+const baseInputStyles = `
+  width: 100%;
+  padding: 14px 18px 14px 44px; /* default left padding for icon */
   font-size: 1rem;
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 8px;
@@ -107,6 +83,57 @@ const Input = styled.input`
   }
 `;
 
+const EmailInput = styled.input`
+  ${baseInputStyles}
+`;
+
+const PasswordInput = styled.input`
+  ${baseInputStyles}
+  padding-left: 44px;  /* for lock icon */
+  padding-right: 44px; /* for eye icon */
+`;
+
+// Icon base styled component
+const IconBase = styled.div`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+`;
+
+// Email icon on left
+const EmailIcon = styled(IconBase)`
+  left: 14px;
+  color: ${({ theme, hasError }) =>
+    hasError ? "red" : theme.mode === "dark" ? "#ddd" : "#444"};
+`;
+
+// Password lock icon on left
+const LockIcon = styled(IconBase)`
+  left: 14px;
+  color: ${({ theme, hasError }) =>
+    hasError ? "red" : theme.mode === "dark" ? "#ddd" : "#444"};
+`;
+
+// Password eye toggle icon on right (clickable)
+const EyeIconWrapper = styled.div`
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: ${({ theme, hasError }) =>
+    hasError ? "red" : theme.mode === "dark" ? "#ddd" : "#444"};
+  transition: color 0.3s ease;
+`;
+
+const ErrorText = styled.div`
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+  padding-left: 4px;
+`;
+
 const Button = styled.button`
   padding: 14px;
   background: ${({ theme }) => theme.accent1};
@@ -116,10 +143,17 @@ const Button = styled.button`
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.3s, opacity 0.3s;
+  margin-top: 12px;
 
   &:hover {
     background: ${({ theme }) => theme.accent2};
+  }
+
+  &:disabled {
+    background: ${({ theme }) => theme.accent1};
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 `;
 
@@ -142,41 +176,102 @@ const ImageBox = styled.div`
   }
 `;
 
+const IconWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: ${({ theme }) => theme.accent1};
+  font-size: 3rem;
+`;
+
+// Custom Email Field
+function EmailField() {
+  const theme = useTheme();
+  const [field, meta] = useField("email");
+  const hasError = meta.touched && meta.error;
+
+  return (
+    <>
+      <InputWrapper>
+        <EmailInput
+          {...field}
+          type="email"
+          placeholder="Email"
+          autoComplete="email"
+          aria-invalid={hasError ? "true" : "false"}
+        />
+        <EmailIcon as={FiUser} hasError={hasError} />
+      </InputWrapper>
+      <ErrorMessage name="email" component={ErrorText} />
+    </>
+  );
+}
+
+// Custom Password Field
+function PasswordField({ showPassword, togglePassword }) {
+  const theme = useTheme();
+  const [field, meta] = useField("password");
+  const hasError = meta.touched && meta.error;
+
+  return (
+    <>
+      <InputWrapper>
+        <PasswordInput
+          {...field}
+          type={showPassword ? "text" : "password"}
+          placeholder="Password"
+          autoComplete="current-password"
+          aria-invalid={hasError ? "true" : "false"}
+        />
+        <LockIcon as={FiLock} hasError={hasError} />
+        <EyeIconWrapper onClick={togglePassword} hasError={hasError}>
+          {showPassword ? <FiEyeOff size={22} /> : <FiEye size={22} />}
+        </EyeIconWrapper>
+      </InputWrapper>
+      <ErrorMessage name="password" component={ErrorText} />
+    </>
+  );
+}
+
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const navigate = useNavigate();
 
-  const togglePassword = () => {
-    setShowPassword((prev) => !prev);
-  };
+  const togglePassword = () => setShowPassword((prev) => !prev);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email("Invalid email address")
+      .required("Email is required"),
+    password: Yup.string().required("Password is required"),
+  });
 
-    const credentials = {
-      email: formData.get("email"),
-      password: formData.get("password"),
-    };
+  const handleLogin = async (values, { setSubmitting }) => {
+    setLoginError("");
+    try {
+      const res = await fetch(
+        `http://localhost:3000/users?email=${encodeURIComponent(values.email)}`
+      );
+      const users = await res.json();
 
-    console.log("Login Attempt:", credentials);
+      if (users.length === 0) {
+        setLoginError("No user found with this email.");
+      } else {
+        const user = users[0];
 
-    // Add your login fetch logic here
-    fetch("http://localhost:3000/users?email=" + credentials.email)
-      .then((res) => res.json())
-      .then((users) => {
-        const user = users.find(
-          (u) => u.password === credentials.password
-        );
-        if (user) {
-          alert("Login successful!");
-          console.log(user);
+        if (user.password === values.password) {
+          localStorage.setItem("loggedInUser", JSON.stringify(user));
+          navigate("/dashboard");
         } else {
-          alert("Invalid credentials");
+          setLoginError("Incorrect password.");
         }
-      })
-      .catch((err) => {
-        console.error("Login Error:", err);
-      });
+      }
+    } catch (error) {
+      setLoginError("Login failed. Please try again later.");
+      console.error("Login error:", error);
+    }
+    setSubmitting(false);
   };
 
   return (
@@ -187,26 +282,31 @@ export default function SignIn() {
             <FiUser />
           </IconWrapper>
           <Title>Welcome Back!</Title>
-          <Form onSubmit={handleLogin}>
-            <Input name="email" type="email" placeholder="Email" required />
 
-            <PasswordWrapper>
-              <Input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                required
-                autoComplete="current-password"
-              />
-              {showPassword ? (
-                <FiEyeOff onClick={togglePassword} size={22} />
-              ) : (
-                <FiEye onClick={togglePassword} size={22} />
-              )}
-            </PasswordWrapper>
+          <Formik
+            initialValues={{ email: "", password: "" }}
+            validationSchema={validationSchema}
+            onSubmit={handleLogin}
+            validateOnChange
+            validateOnBlur
+            validateOnMount
+          >
+            {({ isSubmitting, isValid, dirty }) => (
+              <StyledForm>
+                <EmailField />
+                <PasswordField
+                  showPassword={showPassword}
+                  togglePassword={togglePassword}
+                />
 
-            <Button type="submit">Login</Button>
-          </Form>
+                {loginError && <ErrorText>{loginError}</ErrorText>}
+
+                <Button type="submit" disabled={isSubmitting || !isValid || !dirty}>
+                  {isSubmitting ? "Logging in..." : "Login"}
+                </Button>
+              </StyledForm>
+            )}
+          </Formik>
         </FormBox>
 
         <ImageBox>

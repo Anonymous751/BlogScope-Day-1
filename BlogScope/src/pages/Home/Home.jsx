@@ -5,6 +5,7 @@ import WhyChooseUs from './WhyChooseUs/WhyChooseUs'
 import ContentFeed from './ContentFeed/ContentFeed'
 import PopularCategories from './PopularCategories/PopularCategories'
 import Testimonials from './Testonomial/Testonomial'
+import CallToAction from "../../pages/Home/CallToAction/CallToAction"
 
 const Home = () => {
   return (
@@ -15,6 +16,7 @@ const Home = () => {
     <ContentFeed />
     <PopularCategories />
     <Testimonials />
+    <CallToAction />
     <main>
         <Outlet />
       </main>

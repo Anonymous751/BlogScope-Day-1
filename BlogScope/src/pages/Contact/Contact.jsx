@@ -12,42 +12,67 @@ const fadeIn = keyframes`
     transform: translateY(0);
   }
 `;
+
 const Container = styled.section`
   width: 100%;
-  padding: 25px 35px;
+  padding: 25px 65px;
   color: ${({ theme }) => theme.textPrimary};
   background-color: ${({ theme }) => theme.bg};
   animation: ${fadeIn} 0.7s ease forwards;
   transition: color 0.4s ease, background-color 0.4s ease;
 
   display: flex;
-  align-items: center; 
+  align-items: flex-start; /* changed for better vertical alignment */
   gap: 40px;
 
   @media (max-width: 900px) {
     flex-direction: column;
     margin: 40px 16px;
-    align-items: stretch; 
+    align-items: stretch;
+    padding: 20px 16px;
+    gap: 24px;
   }
 `;
-
 
 const ContactInfo = styled.div`
   flex: 1;
   min-width: 300px;
+
+  @media (max-width: 900px) {
+    min-width: auto;
+  }
 `;
 
 const MapWrapper = styled.div`
   flex: 1;
-  min-width: 800px;
+  min-width: 600px;
   border-radius: 25px;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  position: relative;
+  margin-top: 10%; /* Shift map 10% upward */
 
   iframe {
     width: 100%;
-      min-height: 400px;
+    min-height: 400px;
     border: none;
+    border-radius: 25px;
+  }
+
+  @media (max-width: 1200px) {
+    min-width: 100%;
+  }
+
+  @media (max-width: 900px) {
+    top: 0;
+    min-width: 100%;
+    min-height: 320px;
+    border-radius: 16px;
+
+    iframe {
+      border-radius: 16px;
+      min-height: 320px;
+    }
   }
 `;
 
@@ -59,6 +84,11 @@ const Title = styled.h1`
   color: ${({ theme }) => theme.accent1};
   user-select: none;
   transition: color 0.4s ease;
+
+  @media (max-width: 900px) {
+    font-size: 2.2rem;
+    margin-bottom: 24px;
+  }
 `;
 
 const List = styled.ul`
@@ -92,6 +122,11 @@ const ListItem = styled.li`
       text-decoration: underline;
     }
   }
+
+  @media (max-width: 900px) {
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
 `;
 
 const SectionTitle = styled.h2`
@@ -101,6 +136,11 @@ const SectionTitle = styled.h2`
   color: ${({ theme }) => theme.accent2};
   user-select: none;
   transition: color 0.4s ease;
+
+  @media (max-width: 900px) {
+    font-size: 1.3rem;
+    margin: 32px 0 16px;
+  }
 `;
 
 const SocialWrapper = styled.div`
@@ -117,6 +157,15 @@ const SocialWrapper = styled.div`
 
     &:hover {
       color: ${({ theme }) => theme.accent1};
+    }
+  }
+
+  @media (max-width: 900px) {
+    font-size: 1.3rem;
+    margin-top: 32px;
+
+    a {
+      margin: 0 12px;
     }
   }
 `;

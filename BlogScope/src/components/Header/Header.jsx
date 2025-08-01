@@ -281,7 +281,7 @@ export default function Header({ isDark, toggleTheme }) {
   return (
     <HeaderWrapper>
       <LeftDiv>
-        <Logo>BlogScope</Logo>
+        <Logo onClick={()=> navigate("/")}>BlogScope</Logo>
 
         {/* Hamburger for mobile */}
         <HamburgerButton
@@ -356,7 +356,7 @@ export default function Header({ isDark, toggleTheme }) {
           </AccountButton>
           {accountOpen && (
             <Dropdown position="account" onMouseLeave={closeAccountDropdown}>
-              <DropdownItem onClick={()=> navigate("/signin")} >Sign In</DropdownItem>
+              <DropdownItem onClick={()=> navigate("/sign-in")} >Sign In</DropdownItem>
               <DropdownItem onClick={()=> navigate('/register')}>Register</DropdownItem>
             </Dropdown>
           )}
