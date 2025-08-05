@@ -312,7 +312,7 @@ function PostEditorB() {
       {savedContent && (
         <>
           <Title>Preview</Title>
-          <Preview dangerouslySetInnerHTML={{ __html: savedContent }} />
+          <Preview dangerouslySetHTML={{ __html: savedContent }} />
         </>
       )}
     </Wrapper>

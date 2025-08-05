@@ -265,7 +265,7 @@ export default function SinglePostPage() {
       )}
 
       <Title>{post.title}</Title>
-      <Content>{post.content || "No content available."}</Content>
+      <Content><div dangerouslySetInnerHTML={{ __html: post.content }} /></Content>
 
       <Divider />
 

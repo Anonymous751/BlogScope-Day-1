@@ -283,13 +283,22 @@
       "role": "Admin",
       "profilePicture": "https://randomuser.me/api/portraits/men/96.jpg",
       "bio": "Hi, i am Kiran . "
+    },
+    {
+      "id": "128b",
+      "fullname": "Abi",
+      "email": "abi123@gmail.com",
+      "password": "Abi@123",
+      "role": "Admin",
+      "profilePicture": "https://randomuser.me/api/portraits/thumb/women/11.jpg",
+      "bio": "Hi, I am Abi."
     }
   ],
   "posts": [
     {
       "id": "1",
       "title": "WelCome To BlogScope ",
-      "content": "<p>ghh<br></p>",
+      "content": "<h1><em><u>Lorem Ipsum<span style=\"color: rgb(0, 0, 0); font-family: &quot;Open Sans&quot;, Arial, sans-serif; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: justify; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; white-space: normal; background-color: rgb(255, 255, 255); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important; font-size: 14px;\"><span>&nbsp;</span>is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,<span>&nbsp;</span></span></u></em></h1><p></p>",
       "category": [
         "tech",
         "travel"
@@ -322,7 +331,8 @@
         "24",
         "38f4",
         "38f4",
-        "17"
+        "17",
+        "128b"
       ],
       "comments": [
         "Hi, you are Doing good job",
@@ -854,6 +864,20 @@
       "content": "<p><span class=\"font-size-20\">React lets you build user interfaces out of individual pieces called components. Create your own React components like</span><span class=\"font-size-20\"><span>&nbsp;</span></span><code dir=\"ltr\" class=\"font-mono inline rounded-lg bg-gray-15/40 dark:bg-secondary-button-dark py-0.5 px-1 text-left font-courier font-size-20\">Thumbnail</code><span class=\"font-size-20\">,<span>&nbsp;</span></span><code dir=\"ltr\" class=\"font-mono inline rounded-lg bg-gray-15/40 dark:bg-secondary-button-dark py-0.5 px-1 text-left font-courier font-size-20\">LikeButton</code><span class=\"font-size-20\">, and</span><span class=\"font-size-20\"><span>&nbsp;</span></span><code dir=\"ltr\" class=\"font-mono inline rounded-lg bg-gray-15/40 dark:bg-secondary-button-dark py-0.5 px-1 text-left font-courier font-size-20\">Video</code><span class=\"font-size-20\">. Then combine them into entire screens, pages, and apps.</span></p>",
       "createdBy": "1",
       "createdAt": "2025-08-04T09:10:32.152Z",
+      "likes": [
+        "128b",
+        "128b",
+        "128b",
+        "128b"
+      ]
+    },
+    {
+      "id": "f0c9e93e-cf51-4808-b0c0-eb74b43a55c4",
+      "title": "New in Angular",
+      "category": "tech",
+      "content": "<p><strong><em><u>Hi, Angular based Software Developer&nbsp;</u></em></strong></p>",
+      "createdBy": "128b",
+      "createdAt": "2025-08-05T04:23:45.584Z",
       "likes": []
     }
   ],
