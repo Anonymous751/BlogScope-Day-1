@@ -6,7 +6,9 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaGithub,
+  FaGoogle,
 } from "react-icons/fa";
+import { useGoogleLogin } from "@react-oauth/google";
 
 const fadeInUp = keyframes`
   from {
@@ -27,7 +29,7 @@ const FooterWrapper = styled.footer`
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   animation: ${fadeInUp} 0.6s ease forwards;
   user-select: none;
 `;
@@ -74,27 +76,45 @@ const SocialMedia = styled.div`
   margin-bottom: 36px;
 `;
 
-const SocialIcon = styled.a`
+const SocialIcon = styled.button`
   color: ${({ theme }) => theme.accent3};
   font-size: 1.5rem;
   transition: transform 0.3s ease, color 0.3s ease;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
 
   &:hover {
     color: ${({ theme }) => theme.accent1};
     transform: scale(1.2);
   }
 `;
+
 const CopyRight = styled.p`
   font-size: 0.9rem;
   color: ${({ theme }) =>
-    theme.bg === "#121212" ? "rgba(255, 255, 255, 0.7)" : "rgba(31, 41, 55, 0.7)"};
+    theme.bg === "#121212"
+      ? "rgba(255, 255, 255, 0.7)"
+      : "rgba(31, 41, 55, 0.7)"};
   text-align: center;
   user-select: none;
   text-shadow: ${({ theme }) =>
     theme.bg === "#121212" ? "0 0 4px rgba(0,0,0,0.6)" : "none"};
 `;
+
 export default function Footer() {
+  // Initialize Google login
+  const login = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      console.log("Google login success!", tokenResponse);
+      // You can fetch user info here or send token to your backend
+    },
+    onError: () => {
+      console.error("Google login failed");
+    },
+  });
+
   return (
     <FooterWrapper>
       <LinksContainer>
@@ -108,48 +128,67 @@ export default function Footer() {
 
       <SocialMedia>
         <SocialIcon
+          onClick={login}
+          aria-label="Sign in with Google"
+          title="Sign in with Google"
+        >
+          <FaGoogle />
+        </SocialIcon>
+        <SocialIcon
+          as="a"
           href="https://facebook.com"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Facebook"
+          title="Facebook"
         >
           <FaFacebookF />
         </SocialIcon>
         <SocialIcon
+          as="a"
           href="https://twitter.com"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Twitter"
+          title="Twitter"
         >
           <FaTwitter />
         </SocialIcon>
         <SocialIcon
+          as="a"
           href="https://instagram.com"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram"
+          title="Instagram"
         >
           <FaInstagram />
         </SocialIcon>
         <SocialIcon
+          as="a"
           href="https://linkedin.com"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="LinkedIn"
+          title="LinkedIn"
         >
           <FaLinkedinIn />
         </SocialIcon>
         <SocialIcon
+          as="a"
           href="https://github.com"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="GitHub"
+          title="GitHub"
         >
           <FaGithub />
         </SocialIcon>
       </SocialMedia>
 
-      <CopyRight>© {new Date().getFullYear()} Your Company. All rights reserved.</CopyRight>
+      <CopyRight>
+        © {new Date().getFullYear()} Your Company. All rights reserved.
+      </CopyRight>
     </FooterWrapper>
   );
 }

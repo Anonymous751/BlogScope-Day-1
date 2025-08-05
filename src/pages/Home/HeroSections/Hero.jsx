@@ -77,7 +77,7 @@ export default function Hero() {
         <h1>Welcome to BlogScope</h1>
         <p>Share your ideas and thoughts with the world.</p>
         <p>Create posts, interact with others, and build your audience.</p>
-        <CTAButton onClick={() => navigate("/dashboard")}>
+        <CTAButton onClick={() => navigate("/about")}>
           Get Started
         </CTAButton>
       </Content>

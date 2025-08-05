@@ -14,7 +14,7 @@ const fadeIn = keyframes`
 
 const AboutSection = styled.section`
   max-width: 100%;
-  // margin: 60px auto;
+  margin: 60px auto;
   padding: 20px 36px;
   color: ${({ theme }) => theme.textPrimary};
   background-color: ${({ theme }) => theme.bg};

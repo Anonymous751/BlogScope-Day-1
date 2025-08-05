@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import styled, { useTheme } from "styled-components";
@@ -13,7 +13,7 @@ const BackgroundWrapper = styled.div`
 
 const Container = styled.div`
   max-width: 900px;
-  margin: 0 auto;
+  margin: 30px  auto;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
   background-color: ${({ theme }) => theme.navbarCards};

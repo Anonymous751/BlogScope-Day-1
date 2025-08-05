@@ -3,21 +3,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useState, useMemo } from "react";
 import styled from "styled-components";
-import { FaHeart, FaTrash, FaEdit } from "react-icons/fa";
+import { FaTrash, FaEdit } from "react-icons/fa";
 
 // Styled Components
 const Container = styled.div`
   padding: 2rem;
   max-width: 800px;
-  background-color: ${({ theme }) => theme.pageBg};
+  background-color: ${({ theme }) => theme.bg};
   color: ${({ theme }) => theme.textPrimary};
   margin: 2rem auto;
-  background-color: ${({ theme }) => theme.bg};
   border-radius: 16px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
   font-family: "Segoe UI", sans-serif;
   position: relative;
-  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const ActionBar = styled.div`
@@ -36,7 +34,6 @@ const Title = styled.h2`
 
 const Content = styled.p`
   font-size: 1.1rem;
-  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const Divider = styled.div`
@@ -54,29 +51,10 @@ const Meta = styled.div`
   color: ${({ theme }) => theme.border};
 `;
 
-const LikeSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 1rem;
-  cursor: pointer;
-`;
-
-const HeartIcon = styled(FaHeart)`
-  font-size: 22px;
-  color: crimson;
-  transition: transform 0.2s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  &:hover {
-    transform: scale(1.2);
-  }
-`;
-
 const CommentList = styled.ul`
   margin-top: 0.7rem;
   padding-left: 1rem;
   list-style-type: disc;
-  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const CommentInputWrapper = styled.div`
@@ -92,8 +70,6 @@ const CommentInput = styled.input`
   border: 1px solid ${({ theme }) => theme.border};
   outline: none;
   font-size: 1rem;
-  background-color: ${({ theme }) => theme.navbarCards};
-  color: ${({ theme }) => theme.textPrimary};
 `;
 
 const SubmitButton = styled.button`
@@ -104,7 +80,6 @@ const SubmitButton = styled.button`
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-  transition: background 0.2s ease;
 
   &:hover {
     background: ${({ theme }) => theme.accent2};
@@ -115,17 +90,6 @@ const IconButton = styled.button`
   background: none;
   border: none;
   cursor: pointer;
-`;
-
-const Sidebar = styled.div`
-  background: ${({ theme }) => theme.sidebarBg};
-  color: ${({ theme }) => theme.sidebarText};
-`;
-
-
-const MainContent = styled.div`
-  background: ${({ theme }) => theme.contentBg};
-  color: ${({ theme }) => theme.textPrimary};
 `;
 
 export default function SinglePostPage() {
@@ -148,66 +112,25 @@ export default function SinglePostPage() {
     .trim();
 
   const permissions = {
-    admin: {
-      canRead: true,
-      canComment: true,
-      canLike: true,
-      canDelete: true,
-      canUpdate: true,
-    },
-    editor: {
-      canRead: true,
-      canComment: true,
-      canLike: true,
-      canDelete: false,
-      canUpdate: true,
-    },
-    viewer: {
-      canRead: true,
-      canComment: true,
-      canLike: true,
-      canDelete: false,
-      canUpdate: false,
-    },
+    admin: { canComment: true, canDelete: true, canUpdate: true },
+    editor: { canComment: true, canDelete: false, canUpdate: true },
+    viewer: { canComment: true, canDelete: false, canUpdate: false },
   };
 
   const can = permissions[userRole] || {};
 
-  const {
-    data: post,
-    isLoading: postLoading,
-    error: postError,
-  } = useQuery({
+  const { data: post, isLoading: postLoading } = useQuery({
     queryKey: ["post", postId],
-    queryFn: async () => {
-      const res = await axios.get(`http://localhost:3000/posts/${postId}`);
-      return res.data;
-    },
+    queryFn: async () =>
+      (await axios.get(`http://localhost:3000/posts/${postId}`)).data,
     enabled: !!postId,
   });
 
-  const {
-    data: postAuthor,
-    isLoading: userLoading,
-    error: userError,
-  } = useQuery({
+  const { data: postAuthor } = useQuery({
     queryKey: ["user", post?.createdBy],
     queryFn: async () =>
-      axios
-        .get(`http://localhost:3000/users/${post.createdBy}`)
-        .then((res) => res.data),
+      (await axios.get(`http://localhost:3000/users/${post.createdBy}`)).data,
     enabled: !!post?.createdBy,
-  });
-
-  const likeMutation = useMutation({
-    mutationFn: async () => {
-      const updatedLikes = [...(post?.likes || []), loggedInUser?.id];
-      return await axios.patch(`http://localhost:3000/posts/${postId}`, {
-        likes: updatedLikes,
-      });
-    },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["post", postId] }),
   });
 
   const commentMutation = useMutation({
@@ -224,40 +147,36 @@ export default function SinglePostPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async () => {
-      return await axios.delete(`http://localhost:3000/posts/${postId}`);
-    },
+    mutationFn: async () =>
+      await axios.delete(`http://localhost:3000/posts/${postId}`),
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ["post", postId] });
       navigate("/dashboard");
     },
   });
 
-  const handleDeletePost = () => {
-    if (window.confirm("Are you sure you want to delete this post?")) {
-      deleteMutation.mutate();
-    }
-  };
-
-  const handleEditPost = () => {
-    navigate(`/edit-post/${postId}`);
-  };
-
-  if (postLoading || userLoading) return <p>Loading...</p>;
-  if (postError || !post) return <p>Error loading post.</p>;
-  if (userError) return <p>Error loading author info.</p>;
+  if (postLoading) return <p>Loading...</p>;
+  if (!post) return <p>Error loading post.</p>;
 
   return (
     <Container>
       {(can.canUpdate || can.canDelete) && (
         <ActionBar>
           {can.canUpdate && (
-            <IconButton title="Edit" onClick={handleEditPost}>
+            <IconButton
+              title="Edit"
+              onClick={() => navigate(`/edit-post/${postId}`)}
+            >
               <FaEdit size={18} color="#4f46e5" />
             </IconButton>
           )}
           {can.canDelete && (
-            <IconButton title="Delete" onClick={handleDeletePost}>
+            <IconButton
+              title="Delete"
+              onClick={() =>
+                window.confirm("Are you sure?") && deleteMutation.mutate()
+              }
+            >
               <FaTrash size={18} color="crimson" />
             </IconButton>
           )}
@@ -265,27 +184,17 @@ export default function SinglePostPage() {
       )}
 
       <Title>{post.title}</Title>
-      <Content><div dangerouslySetInnerHTML={{ __html: post.content }} /></Content>
-
+      <Content>
+        <div dangerouslySetInnerHTML={{ __html: post.content }} />
+      </Content>
       <Divider />
-
       <Meta>
         <strong>Author:</strong> {postAuthor?.name}{" "}
         <span style={{ color: "#9ca3af" }}>(ID: {postAuthor?.id})</span>
       </Meta>
 
-      {can.canLike && (
-        <LikeSection onClick={() => likeMutation.mutate()}>
-          <HeartIcon />
-          <span style={{ fontWeight: 600 }}>
-            {post.likes?.length || 0} Likes
-          </span>
-        </LikeSection>
-      )}
-
-      {/* Comments Section */}
       <div style={{ marginTop: "2rem" }}>
-        <strong style={{ fontSize: "1.1rem" }}>Comments:</strong>
+        <strong>Comments:</strong>
         <CommentList>
           {(post.comments || []).length === 0 ? (
             <li style={{ color: "#9ca3af" }}>No comments yet.</li>
@@ -297,7 +206,6 @@ export default function SinglePostPage() {
         {can.canComment && (
           <CommentInputWrapper>
             <CommentInput
-              type="text"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."

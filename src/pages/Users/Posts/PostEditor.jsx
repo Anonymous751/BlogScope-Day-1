@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { v4 as uuidv4 } from "uuid";
 import JoditEditor from "jodit-react";
 import axios from "axios";
 import styled, { useTheme } from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 // ---------------- Styled Components ----------------
 
@@ -90,16 +91,15 @@ const Preview = styled.div`
   white-space: pre-wrap;
 `;
 
-// ---------------- Form Validation ----------------
+// ---------------- Validation ----------------
 
 const validationSchema = Yup.object().shape({
   title: Yup.string().required("Title is required"),
   category: Yup.string().required("Category is required"),
   content: Yup.string().required("Content is required"),
-  createdBy: Yup.string().required("Please select a user"),
 });
 
-// ---------------- Style Converter ----------------
+// ---------------- Clean Editor Styles ----------------
 
 function convertStylesToClasses(html) {
   const div = document.createElement("div");
@@ -116,11 +116,11 @@ function convertStylesToClasses(html) {
     }, {});
 
     if (styles["font-family"]) {
-      const fontFamily = styles["font-family"].toLowerCase();
-      if (fontFamily.includes("courier")) el.classList.add("font-courier");
-      else if (fontFamily.includes("arial")) el.classList.add("font-arial");
-      else if (fontFamily.includes("georgia")) el.classList.add("font-georgia");
-      else if (fontFamily.includes("times")) el.classList.add("font-times");
+      const font = styles["font-family"].toLowerCase();
+      if (font.includes("courier")) el.classList.add("font-courier");
+      else if (font.includes("arial")) el.classList.add("font-arial");
+      else if (font.includes("georgia")) el.classList.add("font-georgia");
+      else if (font.includes("times")) el.classList.add("font-times");
     }
 
     if (styles["font-size"]) {
@@ -136,47 +136,47 @@ function convertStylesToClasses(html) {
 
 // ---------------- Main Component ----------------
 
-function PostEditorB() {
+function PostEditor() {
+  const navigate = useNavigate();
   const editor = useRef(null);
   const theme = useTheme();
-  const [users, setUsers] = useState([]);
   const [savedContent, setSavedContent] = useState("");
 
+  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+
   const initialValues = {
-    id: uuidv4(),
     title: "",
     category: "",
     content: "",
-    createdBy: "",
-    createdAt: new Date().toISOString(),
-    likes: [],
   };
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:3000/users")
-      .then((res) => setUsers(res.data))
-      .catch((err) => console.error("Error loading users:", err));
-  }, []);
-
   const handleSubmit = async (values, { resetForm }) => {
+    if (!loggedInUser || !loggedInUser.id) {
+      alert("You must be logged in to create a post.");
+      return;
+    }
+
     const cleanedContent = convertStylesToClasses(values.content);
+
     const post = {
-      ...values,
       id: uuidv4(),
-      createdAt: new Date().toISOString(),
+      title: values.title,
+      category: values.category,
       content: cleanedContent,
+      createdAt: new Date().toISOString(),
+      createdBy: loggedInUser.id,
       likes: [],
+      comments: [],
     };
 
     try {
       await axios.post("http://localhost:3000/posts", post);
-      alert("Post saved successfully!");
+      alert("✅ Post saved successfully!");
       setSavedContent(cleanedContent);
       resetForm();
     } catch (err) {
-      console.error("Failed to save post:", err);
-      alert("Failed to save post.");
+      console.error("❌ Failed to save post:", err);
+      alert("❌ Could not save post. Please try again.");
     }
   };
 
@@ -192,7 +192,7 @@ function PostEditorB() {
         {({ values, setFieldValue }) => (
           <Form>
             <Label htmlFor="title">Title</Label>
-            <StyledField id="title" name="title" placeholder="Post title" />
+            <StyledField id="title" name="title" placeholder="Post title..." />
             <ErrorMessage name="title" component={Error} />
 
             <Label htmlFor="category">Category</Label>
@@ -219,50 +219,35 @@ function PostEditorB() {
               config={{
                 readonly: false,
                 height: 400,
-                toolbarSticky: false,
-                toolbarAdaptive: false,
                 styleWithCSS: true,
-                showCharsCounter: true,
-                showWordsCounter: true,
-                defaultActionOnPaste: "insert_as_html",
-                askBeforePasteHTML: false,
-                askBeforePasteFromWord: false,
-                uploader: { insertImageAsBase64URI: true },
                 theme: theme.bg === "#121212" ? "dark" : "default",
+                toolbarSticky: false,
+                defaultActionOnPaste: "insert_as_html",
+                uploader: { insertImageAsBase64URI: true },
                 buttons: [
                   "source",
                   "|",
                   "bold",
                   "italic",
                   "underline",
-                  "strikethrough",
                   "|",
                   "ul",
                   "ol",
-                  "outdent",
-                  "indent",
                   "|",
                   "font",
                   "fontsize",
                   "brush",
-                  "paragraph",
                   "|",
                   "image",
-                  "table",
                   "link",
                   "|",
                   "align",
                   "undo",
                   "redo",
-                  "hr",
-                  "|",
-                  "copyformat",
-                  "fullsize",
-                  "selectall",
-                  "print",
                   "|",
                   "preview",
-                  "find",
+                  "selectall",
+                  "print",
                 ],
                 iframeStyle: `
                   body {
@@ -276,47 +261,33 @@ function PostEditorB() {
             />
             <ErrorMessage name="content" component={Error} />
 
-            <Label htmlFor="createdBy">Created By</Label>
-            <StyledSelect
-              id="createdBy"
-              name="createdBy"
-              value={values.createdBy}
-              onChange={(e) => setFieldValue("createdBy", e.target.value)}
-            >
-              <option value="">-- Select User --</option>
-              {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name || user.username || `User ${user.id}`}
-                </option>
-              ))}
-            </StyledSelect>
-            <ErrorMessage name="createdBy" component={Error} />
-
             <Meta>
               <p>
-                <b>Post ID:</b> {values.id}
+                <b>Author:</b> {loggedInUser?.fullname || "Unknown User"}
               </p>
               <p>
-                <b>Created At:</b> {new Date(values.createdAt).toLocaleString()}
-              </p>
-              <p>
-                <b>Likes:</b> {values.likes.length}
+                <b>Created At:</b> {new Date().toLocaleString()}
               </p>
             </Meta>
 
-            <SubmitButton type="submit">Save Post</SubmitButton>
+            <SubmitButton
+              type="submit"
+              onClick={() => navigate("/all-users-posts")}
+            >
+              Publish Post
+            </SubmitButton>
           </Form>
         )}
       </Formik>
 
       {savedContent && (
         <>
-          <Title>Preview</Title>
-          <Preview dangerouslySetHTML={{ __html: savedContent }} />
+          <Title>Post Preview</Title>
+          <Preview dangerouslySetInnerHTML={{ __html: savedContent }} />
         </>
       )}
     </Wrapper>
   );
 }
 
-export default PostEditorB;
+export default PostEditor;

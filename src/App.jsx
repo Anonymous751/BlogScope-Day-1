@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./components/Layout/Layout";
 import Home from "./pages/Home/Home";
@@ -7,7 +7,6 @@ import About from "./pages/About/About";
 import Contact from "./pages/Contact/Contact";
 import Dashboard from "./pages/Dashboard/Dasboard";
 import { ThemeProvider } from "styled-components";
-import "./App.css";
 import Register from "./pages/Accounts/Register/Register";
 import SignIn from "./pages/Accounts/SignIn/SignIn";
 import EditUser from "./pages/Users/EditUser";
@@ -21,6 +20,8 @@ import { AuthProvider } from "./Contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import DashboardLayout from "./pages/Dashboard/DashboardLayout";
 import Tech from "./pages/Categories/Tech/Tech";
+import "./App.css";
+
 
 const lightTheme = {
   bg: "#ffffff",
